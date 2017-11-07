@@ -194,12 +194,29 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+    if(iterator === undefined || iterator === null){
+      iterator = _.identity;
+    }
+    return _.reduce(collection, function(accu, curr){
+      if (!accu){
+        return false;
+      }
+      return !!iterator(curr);
+
+    },true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    if ( iterator === undefined || iterator === null){
+      iterator = _.identity
+    }
+
+    return !(_.every(collection, function(value){
+      return !iterator(value);
+    }));
   };
 
 
@@ -222,11 +239,26 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    
+    for ( var i = 1; i < arguments.length; i++ ){
+      for ( var prop in arguments[i] ){
+        obj[prop] = arguments[i][prop];
+      }
+    }
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    for (var i = 1; i < arguments.length; i++ ){
+      for ( var prop in arguments[i] ){
+        if(!(prop in obj)){
+          obj[prop] = arguments[i][prop];
+        }
+      }
+    }
+    return obj;
   };
 
 
@@ -270,6 +302,16 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var called = {}
+
+    return function(){
+      var x = JSON.stringify(arguments);
+      if (!called.hasOwnProperty(x)){
+        called[x] = func.apply(this, arguments);
+      }
+      return called[x];
+    }
+
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -279,6 +321,8 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    setTimeout(func, wait, ...args);
   };
 
 
@@ -293,6 +337,24 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var newArray = [];
+    var indexUsed = [];
+
+    function randomI(){
+      return Math.floor(Math.random() * (array.length - 0) + 0);
+    }
+
+    for ( var i = 0; i < array.length; i++ ){
+      var newIndex = randomI();
+
+      while(_.indexOf(indexUsed, newIndex) > -1){
+        newIndex = randomI();
+      }
+
+      newArray[newIndex] = array[i];
+      indexUsed.push(newIndex);
+    }
+    return newArray;
   };
 
 
@@ -322,6 +384,7 @@
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
   _.zip = function() {
+    
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
